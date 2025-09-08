@@ -50,13 +50,13 @@ def show_phone(args, book: AddressBook):  #Повертає номер теле�
     name = args[0]  
     record = book.find(name)
     if record and record.phones:
-        return "\n".join(str(record) for record in book.values())
+        return "; ".join(phone.value for phone in record.phones)
     return "Contact not found."
 
 @input_error
 def show_all(book: AddressBook):  #Виводить список усіх контактів
     if book:  # Перевіряємо, чи є контакти у словнику
-        return "\n".join([f"{name}: {phone}" for name, phone in contacts.items()])  # Форматуємо список
+        return "\n".join(str(record) for record in book.values())  # Форматуємо список
     else:
         return "Contact list is empty."  # Якщо контактів немає
 
@@ -111,8 +111,8 @@ def main():
             print(add_birthday(args, book))
         elif command == "show-birthday":  #Показати день народження 
             print(show_birthday(args, book)) 
-        elif command == "birthday":   
-            print(birthday(args, book))    
+        elif command == "birthdays":   
+            print(birthdays(args, book))    
         else:
             print("Invalid command.")  # Якщо команда невідома
 
@@ -204,7 +204,7 @@ class AddressBook(UserDict):
     def __str__(self):
         return "\n".join(str(record) for record in self.data.values())
 
-     def get_upcoming_birthdays(self):  # Список ДН на 7 днів вперед
+    def get_upcoming_birthdays(self):  # Список ДН на 7 днів вперед
         today = datetime.today().date()
         upcoming = []
         for record in self.data.values():
@@ -231,27 +231,6 @@ if __name__ == "__main__":  #запуститься тільки якщо її �
 
 book = AddressBook()
 
-john_record = Record("John")
-john_record.add_phone("1234567890")
-john_record.add_phone("5555555555")
-book.add_record(john_record)
-
-jane_record = Record("Jane")
-jane_record.add_phone("9876543210")
-book.add_record(jane_record)
-
-print(book)
-
-john = book.find("John")
-john.edit_phone("1234567890", "1112223333")
-john.remove_phone("5555555555")
-print(john)
-
-found_phone = john.find_phone("5555555555")
-print(f"{john.name}: {found_phone}")
-
-book.delete("Jane")
-print(book)
 
 
 
