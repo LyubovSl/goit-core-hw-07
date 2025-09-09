@@ -2,123 +2,6 @@
 from collections import UserDict
 from datetime import datetime, timedelta
 
-def parse_input(user_input):  #збирає введений користувачем рядок на команду та аргументи.
-    cmd, *args = user_input.split()  # Розділяємо введений рядок на список слів (перше слово — команда, решта — аргументи)
-    cmd = cmd.strip().lower()  # Видаляємо зайві пробіли та переводимо команду в нижній регістр
-    return cmd, *args  # Повертаємо команду та її аргументи
-
-# Декоратор для обробки помилок введення
-def input_error(func):
-    # Внутрішня функція-обгортка, яка додає обробку помилок
-    def inner(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)  # Викликаємо оригінальну функцію
-        except ValueError:  # Якщо виникла помилка ValueError (наприклад, недостатньо аргументів)
-            return "Give me name and phone please."  # Повертаємо повідомлення про помилку
-        except IndexError:
-            return "Enter the argument for the command." # Повертаємо повідомлення про помилку
-        except KeyError:
-            return "Error: Contact not found." # Повертаємо повідомлення про помилку
-
-    return inner  # Повертаємо обгортку, яка буде використовуватися замість оригінальної функції
-
-
-@input_error
-def add_contact(args, book: AddressBook): # Додає новий контакт у словник contacts
-    name, phone, *_ = args
-    record = book.find(name)
-    message = "Contact updated."
-    if record is None:
-        record = Record(name)
-        book.add_record(record)
-        message = "Contact added."
-    if phone:
-        record.add_phone(phone)
-    return message
-
-@input_error
-def change_contact(args, book: AddressBook): #Оновлює номер телефону для існуючого контакту
-    name, old_phone, new_phone = args
-    record = book.find(name)
-    if record:
-        record.edit_phone(old_phone, new_phone)
-        return "Phone updated."
-    return "Contact not found."
-
-@input_error
-def show_phone(args, book: AddressBook):  #Повертає номер телефону за ім’ям.
-    name = args[0]  
-    record = book.find(name)
-    if record and record.phones:
-        return "; ".join(phone.value for phone in record.phones)
-    return "Contact not found."
-
-@input_error
-def show_all(book: AddressBook):  #Виводить список усіх контактів
-    if book:  # Перевіряємо, чи є контакти у словнику
-        return "\n".join(str(record) for record in book.values())  # Форматуємо список
-    else:
-        return "Contact list is empty."  # Якщо контактів немає
-
-@input_error
-def add_birthday(args, book: AddressBook):
-    name, birthday_str = args
-    record = book.find(name)
-    if record:
-        record.add_birthday(birthday_str)
-        return f"Birthday added for {name}."
-    return "Contact not found."
-
-@input_error
-def show_birthday(args, book: AddressBook):
-    name = args[0]
-    record = book.find(name)
-    if record and record.birthday:
-        return f"{name}'s birthday is {record.birthday.value}"
-    return "Birthday not found."
-
-@input_error
-def birthdays(args, book: AddressBook):
-    upcoming = book.get_upcoming_birthdays()
-    if not upcoming:
-        return "No upcoming birthdays."
-    return "\n".join(f"{item['name']} -> {item['birthday']}" for item in upcoming)
-
-
-#Головний цикл бота, що очікує команди від користувача
-def main():
-    book = AddressBook()  # Порожній словник для збереження контактів
-    print("Welcome to the assistant bot!")  # Вітання
-    
-    while True:
-        user_input = input("Enter a command: ")  # Запитуємо команду у користувача
-        command, *args = parse_input(user_input)  # Розбираємо команду та аргументи
-
-        if command in ["close", "exit"]:  # Якщо команда "close" або "exit" → вихід
-            print("Good bye!")
-            break
-        elif command == "hello":  # Відповідь на "hello"
-            print("How can I help you?")
-        elif command == "add":  # Додати контакт
-            print(add_contact(args, book))
-        elif command == "change":  # Змінити контакт
-            print(change_contact(args, book))
-        elif command == "phone":  # Показати номер контакту
-            print(show_phone(args, book))
-        elif command == "all":  # Показати всі контакти
-            print(show_all(book))
-        elif command == "add-birthday": #Додати день народження
-            print(add_birthday(args, book))
-        elif command == "show-birthday":  #Показати день народження 
-            print(show_birthday(args, book)) 
-        elif command == "birthdays":   
-            print(birthdays(args, book))    
-        else:
-            print("Invalid command.")  # Якщо команда невідома
-
-
-   
-
 class Field:
     def __init__(self, value):
         self.value = value
@@ -226,11 +109,129 @@ class AddressBook(UserDict):
 
 
 
+
+# Декоратор для обробки помилок введення
+def input_error(func):
+    # Внутрішня функція-обгортка, яка додає обробку помилок
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)  # Викликаємо оригінальну функцію
+        except ValueError:  # Якщо виникла помилка ValueError (наприклад, недостатньо аргументів)
+            return "Give me name and phone please."  # Повертаємо повідомлення про помилку
+        except IndexError:
+            return "Enter the argument for the command." # Повертаємо повідомлення про помилку
+        except KeyError:
+            return "Error: Contact not found." # Повертаємо повідомлення про помилку
+
+    return inner  # Повертаємо обгортку, яка буде використовуватися замість оригінальної функції
+
+
+@input_error
+def add_contact(args, book: AddressBook): # Додає новий контакт у словник contacts
+    name, phone, *_ = args
+    record = book.find(name)
+    message = "Contact updated."
+    if record is None:
+        record = Record(name)
+        book.add_record(record)
+        message = "Contact added."
+    if phone:
+        record.add_phone(phone)
+    return message
+
+@input_error
+def change_contact(args, book: AddressBook): #Оновлює номер телефону для існуючого контакту
+    name, old_phone, new_phone = args
+    record = book.find(name)
+    if record:
+        record.edit_phone(old_phone, new_phone)
+        return "Phone updated."
+    return "Contact not found."
+
+@input_error
+def show_phone(args, book: AddressBook):  #Повертає номер телефону за ім’ям.
+    name = args[0]  
+    record = book.find(name)
+    if record and record.phones:
+        return "; ".join(phone.value for phone in record.phones)
+    return "Contact not found."
+
+@input_error
+def show_all(book: AddressBook):  #Виводить список усіх контактів
+    if book:  # Перевіряємо, чи є контакти у словнику
+        return "\n".join(str(record) for record in book.values())  # Форматуємо список
+    else:
+        return "Contact list is empty."  # Якщо контактів немає
+
+@input_error
+def add_birthday(args, book: AddressBook):
+    name, birthday_str = args
+    record = book.find(name)
+    if record:
+        record.add_birthday(birthday_str)
+        return f"Birthday added for {name}."
+    return "Contact not found."
+
+@input_error
+def show_birthday(args, book: AddressBook):
+    name = args[0]
+    record = book.find(name)
+    if record and record.birthday:
+        return f"{name}'s birthday is {record.birthday.value}"
+    return "Birthday not found."
+
+@input_error
+def birthdays(args, book: AddressBook):
+    upcoming = book.get_upcoming_birthdays()
+    if not upcoming:
+        return "No upcoming birthdays."
+    return "\n".join(f"{item['name']} -> {item['birthday']}" for item in upcoming)
+
+def parse_input(user_input):  #збирає введений користувачем рядок на команду та аргументи.
+    cmd, *args = user_input.split()  # Розділяємо введений рядок на список слів (перше слово — команда, решта — аргументи)
+    cmd = cmd.strip().lower()  # Видаляємо зайві пробіли та переводимо команду в нижній регістр
+    return cmd, *args  # Повертаємо команду та її аргументи
+
+#Головний цикл бота, що очікує команди від користувача
+def main():
+    book = AddressBook()  # Порожній словник для збереження контактів
+    print("Welcome to the assistant bot!")  # Вітання
+    
+    while True:
+        user_input = input("Enter a command: ")  # Запитуємо команду у користувача
+        command, *args = parse_input(user_input)  # Розбираємо команду та аргументи
+
+        if command in ["close", "exit"]:  # Якщо команда "close" або "exit" → вихід
+            print("Good bye!")
+            break
+        elif command == "hello":  # Відповідь на "hello"
+            print("How can I help you?")
+        elif command == "add":  # Додати контакт
+            print(add_contact(args, book))
+        elif command == "change":  # Змінити контакт
+            print(change_contact(args, book))
+        elif command == "phone":  # Показати номер контакту
+            print(show_phone(args, book))
+        elif command == "all":  # Показати всі контакти
+            print(show_all(book))
+        elif command == "add-birthday": #Додати день народження
+            print(add_birthday(args, book))
+        elif command == "show-birthday":  #Показати день народження 
+            print(show_birthday(args, book)) 
+        elif command == "birthdays":   
+            print(birthdays(args, book))    
+        else:
+            print("Invalid command.")  # Якщо команда невідома
+
+
 if __name__ == "__main__":  #запуститься тільки якщо її виконати напряму, а не імпортувати як модуль.
     main()
 
 book = AddressBook()
 
+
+book.delete("Jane")
+print(book)
 
 
 
