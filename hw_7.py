@@ -122,7 +122,8 @@ def input_error(func):
             return "Enter the argument for the command." # Повертаємо повідомлення про помилку
         except KeyError:
             return "Error: Contact not found." # Повертаємо повідомлення про помилку
-
+        except AttributeError:
+            return "Error: Contact not found."
     return inner  # Повертаємо обгортку, яка буде використовуватися замість оригінальної функції
 
 
@@ -135,26 +136,21 @@ def add_contact(args, book: AddressBook): # Додає новий контакт
         record = Record(name)
         book.add_record(record)
         message = "Contact added."
-    if phone:
-        record.add_phone(phone)
+    record.add_phone(phone)
     return message
 
 @input_error
 def change_contact(args, book: AddressBook): #Оновлює номер телефону для існуючого контакту
     name, old_phone, new_phone = args
     record = book.find(name)
-    if record:
-        record.edit_phone(old_phone, new_phone)
-        return "Phone updated."
-    return "Contact not found."
+    record.edit_phone(old_phone, new_phone)
+    return "Phone updated."
 
 @input_error
 def show_phone(args, book: AddressBook):  #Повертає номер телефону за ім’ям.
     name = args[0]  
     record = book.find(name)
-    if record and record.phones:
-        return "; ".join(phone.value for phone in record.phones)
-    return "Contact not found."
+    return "; ".join(phone.value for phone in record.phones)
 
 @input_error
 def show_all(book: AddressBook):  #Виводить список усіх контактів
@@ -167,18 +163,14 @@ def show_all(book: AddressBook):  #Виводить список усіх кон
 def add_birthday(args, book: AddressBook):
     name, birthday_str = args
     record = book.find(name)
-    if record:
-        record.add_birthday(birthday_str)
-        return f"Birthday added for {name}."
-    return "Contact not found."
-
+    record.add_birthday(birthday_str)
+    return f"Birthday added for {name}."
+    
 @input_error
 def show_birthday(args, book: AddressBook):
     name = args[0]
     record = book.find(name)
-    if record and record.birthday:
-        return f"{name}'s birthday is {record.birthday.value}"
-    return "Birthday not found."
+    return f"{name}'s birthday is {record.birthday.value}"
 
 @input_error
 def birthdays(args, book: AddressBook):
@@ -188,6 +180,8 @@ def birthdays(args, book: AddressBook):
     return "\n".join(f"{item['name']} -> {item['birthday']}" for item in upcoming)
 
 def parse_input(user_input):  #збирає введений користувачем рядок на команду та аргументи.
+    if not user_input.strip():   # порожній рядок
+        return "", []
     cmd, *args = user_input.split()  # Розділяємо введений рядок на список слів (перше слово — команда, решта — аргументи)
     cmd = cmd.strip().lower()  # Видаляємо зайві пробіли та переводимо команду в нижній регістр
     return cmd, *args  # Повертаємо команду та її аргументи
@@ -227,11 +221,9 @@ def main():
 if __name__ == "__main__":  #запуститься тільки якщо її виконати напряму, а не імпортувати як модуль.
     main()
 
-book = AddressBook()
 
 
-book.delete("Jane")
-print(book)
+
 
 
 
